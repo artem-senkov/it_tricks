@@ -1,0 +1,54 @@
+Сервер
+Установка роли
+Службы удаленных рабочих столов (Remote Desktop Services), Далее, отмечаем чекбоксы: Лицензирование удаленных рабочих столов (Remote Desktop Licensing), Узел сеансов удаленных рабочих столов (Remote Desktop Session Host), со всем соглашаемся, установка, перезагрузка.
+
+В Диспетчере серверов, в пункте меню Средства, появилась закладка Terminal Services (или Remote Desktop Services для 2016).
+
+Настройка параметров RDP
+Настройка всех параметров RDP теперь в групповых политиках. Отдельной графической оснастки, как было раньше, нет:
+
+Win+R - gpedit.msc - Конфигурация компьютера (Computer Configuration);
+Административные шаблоны (Administrative Templates) -
+Компоненты Windows (Windows Components);
+Службы удаленных рабочих столов (Remote Desktop Services) -
+Узел сеансов удаленных рабочих столов (Remote Desktop Session Host) - Лицензирование (Licensing).
+Редактируем два параметра:
+
+Использовать указанные серверы лицензирования удаленных рабочих столов (Use the specified Remote Desktop license servers) - включено - указываем имя сервера;
+Задать режим лицензирования удаленных рабочих столов (Set the Remote licensing mode) - включено - на пользователя.
+В соседних ветках настраиваются все параметры подключения клиентов.
+
+При попытке управлять службами рабочих столов без домена выскакивает предупреждение «Что бы управлять серверами с коллекциями, вам необходимо выполнить вход в качестве пользователя домена»
+
+А конкретно:
+«Вы выполнили вход в учетную запись локального администратора. Что бы управлять серверами с коллекциями, вам необходимо выполнить вход в качестве пользователя домена»
+Вы наверное как и я увидели данное сообщение после того как установили Windows Server 2019, а потом добавили роль Службы удаленных рабочих столов.
+
+Оказывается, что для 2012 серверов выше служба не хочет работать без доменной структуры.
+
+Пуск — Выполнить — mstsc
+Заполняем имя компьютера (IP или имя сервера) и нажимаем Сохранить Как…
+
+ПКМ по созданному ранее файлу Открыть с помощью … выбрать Блокнот
+где изменяем параметр
+remoteapplicationmode:i:1
+Добавляем так же в конце файла строки
+remoteapplicationprogram:s:»C:\Program Files\1cv8\common\1cestart.exe»
+disableremoteappcapscheck:i:1
+alternate shell:s:rdpinit.exe
+
+Так же на сервере добавляем в реестр
+
+Windows Registry Editor Version 5.00
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Terminal Server\TSAppAllowList\Applications]
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Terminal Server\TSAppAllowList\Applications\1cestart]
+«CommandLineSetting»=dword:00000000
+«RequiredCommandLine»=»»
+«Path»="C:\\Program Files\\1cv8\\common\\1cestart.exe"
+«ShortPath»="C:\\PROGRA~2\\1cv8\\common\\1cestart.exe"
+«ShowInTSWA»=dword:00000000
+«Name»=»1C Предприятие»
+«SecurityDescriptor»=»»
+
